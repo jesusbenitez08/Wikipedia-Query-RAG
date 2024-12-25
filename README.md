@@ -5,6 +5,37 @@
 The document used is the Wikipedia article on **Retrieval-Augmented Generation (RAG)**. This article explains the methodology, applications, and advantages of using RAG in AI systems. It provides an overview of how RAG enhances generative AI by retrieving relevant context from external sources.
 
 ---
+## **How the Program Works**
+I asked the AI to give me a simple explanation of how the program works. It responded:
+
+### **1. Load the Document**
+- The program starts by loading the document selected by the user. 
+- If the document is a webpage, the program scrapes the content using BeautifulSoup. 
+- The text is cleaned and saved into a file named `Selected_Document.txt`.
+
+### **2. Process and Split the Document**
+- The document is read from `Selected_Document.txt` and split into smaller, manageable chunks. 
+- These chunks are separated by double newline characters (`\n\n`) to ensure each chunk represents a logical segment of the text.
+
+### **3. Generate Embeddings**
+- Using the `SentenceTransformers` library, each text chunk is converted into a numerical representation called an **embedding**. 
+- These embeddings are stored in a dictionary, where each chunk is linked to its corresponding vector representation. 
+- Embeddings allow the program to calculate the similarity between text segments efficiently.
+
+### **4. Query the System**
+- When the user enters a query, it is also converted into an embedding using the same `SentenceTransformers` model. 
+- The program compares this query embedding to all the document embeddings using **cosine similarity**, which measures how closely two vectors are aligned. 
+- The top three most similar chunks are retrieved.
+
+### **5. Generate a Response**
+- The retrieved chunks are combined into a single prompt and passed to a HuggingFace model (e.g., `flan-t5-small`). 
+- This model generates a response that combines the user query and the context provided by the retrieved chunks. 
+- The response is displayed as the final output.
+
+### **6. Test and Analyze**
+- The program can be tested with multiple queries, and its output is analyzed for relevance and accuracy. 
+
+---
 
 ## **Questions About the Program**
 Below are five questions I asked an AI tool to deepen my understanding of the program, along with their answers:

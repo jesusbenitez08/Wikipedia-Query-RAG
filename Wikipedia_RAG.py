@@ -60,7 +60,7 @@ if __name__ == "__main__":
         generator = pipeline("text2text-generation", model="google/flan-t5-small")
 
         # Example Queries
-        example_queries = ["What is RAG?", "What is indexing?"]
+        example_queries = ["What is Retrieval-Augmented Generation?", "How does RAG differ from standard models?", "What are the advantages of RAG?"]
 
         # Run the queries and display results
         for query in example_queries:
