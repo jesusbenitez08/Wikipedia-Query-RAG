@@ -11,7 +11,7 @@ def scrape_wikipedia_article(url):
         soup = BeautifulSoup(response.content, "html.parser")
         paragraphs = soup.find("div", class_="mw-parser-output").find_all("p")
         article_content = "\n\n".join([p.get_text().strip() for p in paragraphs if p.get_text().strip()])
-        with open("Wikipedia_Article.txt", "w", encoding="utf-8") as file:
+        with open("Selected_Document.txt", "w", encoding="utf-8") as file:
             file.write(article_content)
         print("Scraped article saved to 'Wikipedia_Article.txt'.")
         return article_content
