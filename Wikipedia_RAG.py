@@ -13,7 +13,7 @@ def scrape_wikipedia_article(url):
         article_content = "\n\n".join([p.get_text().strip() for p in paragraphs if p.get_text().strip()])
         with open("Selected_Document.txt", "w", encoding="utf-8") as file:
             file.write(article_content)
-        print("Scraped article saved to 'Wikipedia_Article.txt'.")
+        print("Scraped article saved to 'Selected_Document.txt'.")
         return article_content
     else:
         print(f"Failed to fetch the article. HTTP Status Code: {response.status_code}")
