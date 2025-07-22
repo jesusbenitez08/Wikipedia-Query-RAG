@@ -1,28 +1,26 @@
 import requests
 from bs4 import BeautifulSoup
 
-def scrape_webpage(url):
-    # Hard‑coded URL inside the function; the url parameter is ignored
-    url = "https://en.wikipedia.org/wiki/Retrieval-augmented_generation"
+def scrape_webpage():
+    url = "https://en.wikipedia.org/wiki/Willem_Dafoe"  
     response = requests.get(url)
+
     if response.status_code == 200:
-        soup = BeautifulSoup(response.content, "html.parser")
+        soup = BeautifulSoup(response.text, "html.parser")
         content_div = soup.find("div", class_="mw-parser-output")
-        paragraphs = content_div.find_all("p") if content_div else []
-        article_text = "\n\n".join(
-            p.get_text().strip() for p in paragraphs if p.get_text().strip()
-        )
+        paragraphs = content_div.find_all("p")
+        text = "\n\n".join(p.get_text() for p in paragraphs)
+
         with open("Selected_Document.txt", "w", encoding="utf-8") as f:
-            f.write(article_text)
-        print("Scraped article saved to 'Selected_Document.txt'.")
-        return article_text
+            f.write(text)
+
+        print("Article text saved to 'Selected_Document.txt'.") 
+        return text
     else:
-        print(f"Failed to fetch the article. HTTP Status Code: {response.status_code}")
+        print(f"Failed to fetch the article. HTTP Status Code: {response.status_code}") 
         return ""
 
-def main():
-    # Call scrape_webpage with a placeholder; the function itself uses the hard‑coded URL
-    scrape_webpage(None)
+if __name__ == "__main__":
 
-if __name__ == '__main__':
-    main()
+    scrape_webpage()
+

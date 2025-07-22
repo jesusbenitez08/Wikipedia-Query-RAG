@@ -1,29 +1,28 @@
-
 import logging
-from transformers import logging as hf_logging
 import warnings
+from transformers import logging as hf_logging
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from sentence_transformers import SentenceTransformer
 import numpy as np
 import faiss
 from transformers import pipeline
 
-# ─── Suppress noisy logs ────────────────────────────────────────────────────────
+# 3.1 Suppress noisy logs
 logging.getLogger("langchain.text_splitter").setLevel(logging.ERROR)
 hf_logging.set_verbosity_error()
 warnings.filterwarnings("ignore")
 
-# ─── Parameters ────────────────────────────────────────────────────────────────
-chunk_size    = 500
+# 3.2 Parameters
+chunk_size = 500
 chunk_overlap = 50
-model_name    = "sentence-transformers/all-distilroberta-v1"
-top_k         = 5
+model_name = "sentence-transformers/all-distilroberta-v1"
+top_k = 5
 
-# ─── Read the pre‑scraped document ─────────────────────────────────────────────
+# 3.3 Read the pre-scraped document
 with open("Selected_Document.txt", "r", encoding="utf-8") as f:
     text = f.read()
 
-# ─── Split into appropriately‑sized chunks ────────────────────────────────────
+# 3.4 Split into appropriately-sized chunks
 splitter = RecursiveCharacterTextSplitter(
     separators=["\n\n", "\n", " ", ""],
     chunk_size=chunk_size,
@@ -31,44 +30,37 @@ splitter = RecursiveCharacterTextSplitter(
 )
 chunks = splitter.split_text(text)
 
-# ─── Embed & build FAISS index ─────────────────────────────────────────────────
-embed_model = SentenceTransformer(model_name)
-embeddings  = embed_model.encode(chunks, show_progress_bar=False)
-emb_array   = np.array(embeddings, dtype="float32")
-index       = faiss.IndexFlatL2(emb_array.shape[1])
-index.add(emb_array)
+# 3.5 Embed & build FAISS index
+print("Encoding text chunks...")
+model = SentenceTransformer(model_name)
+embeddings = model.encode(chunks, show_progress_bar=True)
+embeddings = np.array(embeddings).astype("float32")
 
-# ─── Load the generator pipeline ───────────────────────────────────────────────
-generator = pipeline(
-    "text2text-generation",
-    model="google/flan-t5-small",
-    device=-1
-)
+index = faiss.IndexFlatL2(embeddings.shape[1])
+index.add(embeddings)
 
-# ─── Retrieval & Answering Functions ──────────────────────────────────────────
+# 3.6 Load the generator pipeline
+generator = pipeline("text2text-generation", model="google/flan-t5-small", device=-1)
+
+# 3.7 Retrieval & answering functions
 def retrieve_chunks(question, k=top_k):
-    q_emb   = embed_model.encode([question], show_progress_bar=False)
-    q_arr   = np.array(q_emb, dtype="float32")
-    _, idxs = index.search(q_arr, k)
-    return [chunks[i] for i in idxs[0]]
+    question_embedding = model.encode([question]).astype("float32")
+    distances, indices = index.search(question_embedding, k)
+    return [chunks[i] for i in indices[0]]
 
 def answer_question(question):
-    context = "\n\n".join(retrieve_chunks(question))
-    prompt  = (
-        "Use the following context to answer the question:\n\n"
-        f"Context:\n{context}\n\n"
-        f"Question: {question}"
-    )
-    result = generator(prompt, max_length=200)
-    return result[0]["generated_text"]
+    context_chunks = retrieve_chunks(question)
+    context = "\n\n".join(context_chunks)
+    prompt = f"Answer the question based on the following context:\n{context}\n\nQuestion: {question}"
+    response = generator(prompt, max_length=200, do_sample=False)
+    return response[0]['generated_text']
 
-# ─── Interactive loop ─────────────────────────────────────────────────────────
+# 3.8 Interactive loop
 if __name__ == "__main__":
-    print("Enter 'exit' or 'quit' to end.")
+    print("Ask me anything about the document. Type 'exit' or 'quit' to end.")
     while True:
-        question = input("\nYour question: ")
+        question = input("Your question: ")
         if question.lower() in ("exit", "quit"):
-            print("Goodbye!")
             break
-        answer = answer_question(question)
-        print("\nAnswer:", answer)
+        print("Answer:", answer_question(question))
+
